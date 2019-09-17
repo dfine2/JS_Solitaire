@@ -5,6 +5,12 @@ html,body{
     background-color: green !important;
 
 }
+body{
+    display: block;
+    overflow-x: hidden;
+    border: 2px solid black;
+    max-width: 100%;
+}
 .cardSlot, .platform_dropZone{
     width: 80px;
     height: 125px;

@@ -12,8 +12,7 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="crossorigin="anonymous"></script>
-<link rel="stylesheet" href="jquery.multi-draggable.css">
-<script src="jquery.multi-draggable.js"></script>
+
 
 
 
@@ -433,7 +432,8 @@ function wrapStack(element){  //Gets all cards further down the stack of the sel
                 $(".move_wrapper").children(".cardSlot").unwrap();
                 },
             snap: true,
-            snapTolerance: 50
+            snapTolerance: 50,
+            scroll: false
 
         
         });
