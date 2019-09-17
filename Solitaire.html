@@ -246,6 +246,9 @@ function refresh(){
 function Draw(deck){
     
     var handBox = document.getElementById("handBox");
+    //Destroy move_wrapper so that there's no chance of being able to move a card that's not at the top of the hand.
+    $(".move_wrapper").find(".cardSlot").unwrap();
+    $(".move_wrapper").remove();
 
     if (deck.cards.length > 0){
         $("#stock").attr("src","/assets/Cards/blue_back.png");
