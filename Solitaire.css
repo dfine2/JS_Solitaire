@@ -8,7 +8,6 @@ html,body{
 body{
     display: block;
     overflow-x: hidden;
-    border: 2px solid black;
     max-width: 100%;
 }
 .cardSlot, .platform_dropZone{
