@@ -1,0 +1,94 @@
+
+html,body{
+    overflow-x: hidden;
+    padding: 15px 50px;
+    background-color: green !important;
+
+}
+.cardSlot, .platform_dropZone{
+    width: 80px;
+    height: 125px;
+    padding:0;
+    position: relative;
+    
+}
+
+.dropZone{
+    border: 2px solid white;
+}
+
+.move_wrapper{
+    padding:0;
+}
+.playingCard{
+    width: 80px;
+    height: 125px;
+    margin: 0;
+    bottom: 0;
+    top: 0;
+    position: absolute;
+    z-index: 1;
+    padding: 0;
+ 
+}
+
+
+.cardImage{
+    position: absolute;
+    width: 80px;
+    height: 125px;
+}
+
+
+#topRow{
+    margin-top: 20px;
+
+
+}
+#piles{
+    position: absolute;
+    right: 100px;
+}
+.pile{
+    margin: 0 10px;
+}
+.empty{
+    border: 2px dashed white;
+}
+#stockBox{
+    margin-left: 15px;
+}
+
+#handBox{
+    padding-left: 100px;
+
+}
+#handBox .cardSlot{
+    margin-left: -50px;
+}
+
+#platforms{
+    justify-content: space-between;
+    margin-top: 50px;
+}
+.platform{
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+    padding-top: 80px;
+}
+.platform .cardSlot{
+    margin-top: -110px;
+}
+
+.platform_dropZone{
+    position: relative;
+    margin-top: -50px;
+}
+.pile .cardSlot .cardSlot{
+    position: absolute;
+}
+
+.move_wrapper .playingCard img{
+    border: 2px solid red;
+}

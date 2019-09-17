@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Solitaire</title>
+    <meta charset="utf-8">
+
+<link href="/favicon.ico" type="image/x-icon" rel="icon" />
+<link href="Solitaire.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="crossorigin="anonymous"></script>
+<link rel="stylesheet" href="jquery.multi-draggable.css">
+<script src="jquery.multi-draggable.js"></script>
+
+
+
+</head>
+
+
+<body>
+
+<div class="row" id="topRow"> 
+    <div class="cardSlot cardBase">
+            <div class="playingCard" id="stockBox">
+                    <img class="cardImage" id="stock" src="/assets/Cards/blue_back.png" alt="back" onclick=Draw(stack)>
+            </div>
+    </div>
+    <div class="row cardBase" id="handBox">
+        <div class="cardSlot" id="h0">
+
+        </div>
+    </div>
+    <div class="row" id="piles">
+        <div class="pile cardBase" id="pile-1">
+            <div class="cardSlot empty">
+                
+            </div>
+        </div>
+            
+        <div class="pile cardBase" id="pile-2">
+            <div class="cardSlot empty">
+            
+            </div>
+            
+        </div>
+        <div class="pile cardBase" id="pile-3">
+            <div class="cardSlot empty">
+            
+            </div>
+            
+        </div>
+        <div class="pile cardBase" id="pile-4">
+            <div class="cardSlot empty">
+            
+            </div>
+            
+        </div>
+    </div>
+    
+</div>
+
+    <div class="row" id="platforms">
+        <div class="platform cardBase" id="platform_1"> 
+            <div class="cardSlot" id="p1_0">
+                
+            </div>
+        </div>
+        <div class="platform cardBase" id="platform_2">
+            <div class="cardSlot" id="p2_0">
+                
+            </div>
+        </div>
+            <div class="platform cardBase" id="platform_3">
+                <div class="cardSlot" id="p3_0">
+                
+                </div>
+            </div>
+        <div class="platform cardBase" id="platform_4">
+            <div class="cardSlot" id="p4_0">
+                
+            </div>
+        </div>
+        <div class="platform cardBase" id="platform_5">
+            <div class="cardSlot" id="p5_0">
+                
+            </div>
+        </div>
+        <div class="platform cardBase" id="platform_6">
+            <div class="cardSlot" id="p6_0">
+                
+            </div>
+        </div>
+        <div class="platform cardBase" id="platform_7">
+            <div class="cardSlot" id="p7_0">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+
+<script>
+
+const cardNames = ["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Jack","Queen","King"];
+const cardSymbols = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const suites = ["Hearts", "Diamonds", "Spades", "Clubs"];
+const suiteSymbols = ["H","D","S","C"];
+
+class Card {
+
+	constructor(name, suite, image) {
+
+		this.name = name;
+		this.suite = suite;
+		this.image = image;
+	}
+	get color() {
+		if (this.suite == "Hearts" || this.suite == "Diamonds") {
+			return "Red";
+		}
+		else {
+			return "Black";
+		}
+	}
+	get value() {
+		var index = cardNames.indexOf(this.name);
+		return index + 1;
+	}
+	print() {
+		console.log(this.name + " of " + this.suite);
+	}
+	render(element, faceup=true, newSlot=true){
+        
+		var slots = element.getElementsByClassName("cardSlot");
+		var lastSlot = slots[slots.length - 1];
+		var card = document.createElement("div");
+		card.className = "playingCard";
+		card.id = this.name+"Of"+this.suite;
+
+		card.setAttribute("data-name", this.name);
+		card.setAttribute("data-suite", this.suite);
+		card.setAttribute("data-value", this.value);
+        card.setAttribute("data-color",this.color);
+        card.setAttribute("data-image",this.image);
+        card.setAttribute("data-faceup",faceup);
+	
+		var graphic = document.createElement("img");
+		graphic.className = "cardImage";
+		if (faceup){
+			graphic.src = this.image;
+		}
+		else{
+			graphic.src = "/assets/Cards/blue_back.png";
+		}
+		graphic.alt = this.name + " of " + this.suite;
+
+		card.appendChild(graphic);
+		lastSlot.appendChild(card);
+		
+		if(newSlot){
+			var next = document.createElement("div");
+			next.className = "cardSlot";
+			var index = slots.length;
+			var lastId = lastSlot.id;
+			next.id = lastId.slice(0,2)+"_"+index.toString();
+            element.appendChild(next);
+        }
+  
+        $(card).mousedown(function(event){
+            if (event.which == 1 && $(card).parents(".move_wrapper").length == 0){
+                wrapStack(card);
+            }
+            
+        });
+        // $(card).mouseup(function(){
+        //     $(this).parent().unwrap();
+        // });
+        return card;
+	}
+}
+class Deck {
+
+	constructor() {
+		this.cards = [];
+		for (let s = 0; s < suites.length; s++) {
+			for (let c = 0; c < cardNames.length; c++) {
+				var card = new Card(cardNames[c], suites[s], `/assets/Cards/${cardSymbols[c]}${suiteSymbols[s]}.png`);
+				this.cards.push(card);
+			}
+		}
+	}
+	shuffle(len = 52) {
+		var shuffled = [];
+		var spacesFilled = []; //Tracks which indices are already filled
+		for (let p = 0; p < this.cards.length; p++) {
+			while (true) {
+				var space = Math.floor(Math.random() * len);
+				if (spacesFilled.indexOf(space) == -1) {
+					var card = this.cards[p];
+					shuffled[space] = card;
+					spacesFilled.push(space);
+					break;
+				}
+			}
+	
+		}
+		this.cards = shuffled;
+	}
+	draw(num) {
+		var drawn = [];
+		for (let i = 0; i < num; i++) {
+			drawn.push(this.cards.pop());
+		}
+		return drawn;
+	}
+	print() {
+		for (let i = 0; i < this.cards.length; i++) {
+			var card = this.cards[i];
+			card.print();
+		}
+	}
+
+}
+
+
+function refresh(){
+    var slots = $(handBox).find(".cardSlot");
+     slots.each(function(index){
+        if (index < slots.length - 6){
+            $(this).hide();
+        }
+        else{
+            $(this).show();
+        }
+     });
+}
+function Draw(deck){
+    
+    var handBox = document.getElementById("handBox");
+
+    if (deck.cards.length > 0){
+        $("#stock").attr("src","/assets/Cards/blue_back.png");
+        var drawn = deck.cards.pop();
+        if(deck.cards.length == 0){
+            $("#stock").attr("src","/assets/Cards/red_back.png");
+        }
+        hand.push(drawn);
+        var name = $(drawn).attr("data-name");
+        var repeat = $(`.playingCard[data-name=${name}]`).length;
+        if (repeat != 0){
+            alert(name + " repeated!");
+        }
+        var element = drawn.render(handBox);
+        refresh();
+        
+    
+    }
+   
+    else{
+        deck.cards = hand;
+        deck.shuffle(deck.cards.length);
+        hand = [];
+
+        $("#handBox").empty();
+        var slot = document.createElement('div');
+        slot.className = 'cardSlot';
+        slot.id = "h0";
+        handBox.appendChild(slot);
+    }
+    
+}
+function Deal(deck){
+    var platformsList = document.getElementsByClassName("platform");
+    for (let L = 1; L < platformsList.length + 1; L++){
+        var counter = 0;
+        var platform = document.getElementById(`platform_${L}`);
+
+        while(counter < L - 1){
+            let drawn = deck.cards.pop();
+            drawn.render(platform, false);
+            counter++;
+        }
+        var drawn = deck.cards.pop();
+        drawn.render(platform);
+        var dz = platform.lastChild;
+        dz.id = `dropZone_${L}`;
+        $(dz)
+            .removeClass("cardSlot")
+            .addClass("platform_dropZone")
+        }
+        $(".platform_dropZone").droppable({
+            drop: function(event, ui){
+                 //Flip over next card
+                 var nextCard = $(ui.draggable).closest(".move_wrapper").prev().find(".playingCard");
+                if (nextCard != undefined){
+                    var image = nextCard.attr("data-image");
+                    nextCard.attr("data-faceup",true);
+                    nextCard.find("img").attr("src",image);
+                }
+                 //Remove from hand array variable if necessary
+                 if ($(ui.draggable).closest(".cardBase").attr("id") == "handBox"){
+                    hand.pop();
+                }   
+                dropStack(ui.draggable,this);
+                 
+                refresh();                 
+            },
+            accept: function(drag){
+                var dropCard = $(this).parent().find(".playingCard").last();
+                var dragCard = $(drag).find(".playingCard").first();
+                var dragColor = dragCard.attr("data-color");
+                var dropColor = dropCard.attr("data-color");
+                var dragValue = parseInt(dragCard.attr("data-value"));
+                var dropValue = parseInt(dropCard.attr("data-value"));
+                if(dragColor != dropColor && dragValue == dropValue - 1){
+                    return true;
+                }
+                else if(dropCard.length == 0 && dragValue == 13){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            },
+            tolerance: "touch"
+                          
+        }); 
+        $(".pile").droppable({
+            drop: function(event, ui){
+                //Flip over next card
+                var nextCard = $(ui.draggable).closest(".move_wrapper").prev().find(".playingCard");
+                if (nextCard != undefined){
+                    var image = nextCard.attr("data-image");
+                    nextCard.attr("data-faceup",true);
+                    nextCard.find("img").attr("src",image);
+                }
+                //Remove from hand array variable if necessary
+                if ($(ui.draggable).closest(".cardBase").attr("id") == "handBox"){
+                    hand.pop();
+                }   
+                $(this).find(".cardSlot").first().append(ui.draggable);
+           
+                $(".move_wrapper").find(".cardSlot").unwrap();
+                $(".move_wrapper").remove();
+    
+                refresh();
+
+                //Check to see if player has won
+                var piles = $(".pile");
+                var topCards = [];
+                for (let i = 0; i < piles.length; i++){
+                    topCards.push($(piles[i]).find(".playingCard").last().attr("data-name"));
+                }
+                var won = jQuery.grep(topCards, function(card){
+                    return card == "King";
+                })
+                if (won.length == 4){
+                    alert("Congratulations! You win!");
+                }
+                else{
+                    topCards = [];
+                }
+            },
+
+            accept: function(drag){
+                var cards = $(drag).find(".playingCard");
+                if (cards.length != 1){
+                    return false
+                }
+                else{
+                    var dropCard = $(this).find(".playingCard").last();
+                    var dragCard = cards.first();
+                    var dragSuite = dragCard.attr("data-suite");
+                    var dropSuite = dropCard.attr("data-suite");
+                    var dragValue = parseInt(dragCard.attr("data-value"));
+                    var dropValue = parseInt(dropCard.attr("data-value"));
+                    if(dragSuite == dropSuite && dragValue == dropValue + 1){
+                        return true;
+                    }
+                    else if(dropCard.length == 0 && dragValue == 1){
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }   
+            }
+                
+                          
+        }); 
+}
+
+function wrapStack(element){  //Gets all cards further down the stack of the selected card and wraps in a temporary draggable div.
+    $(".move_wrapper").find(".cardSlot").unwrap();
+    $(".move_wrapper").remove();
+
+    var faceup = element.getAttribute("data-faceup");
+    if(faceup == "true"){
+        var parent = $(element).parent()[0];
+        if ($(parent).closest(".cardBase").hasClass("platform")){
+            var stack = $(parent).nextAll(".cardSlot").addBack();
+            stack.wrapAll("<div class='move_wrapper'/>");
+        }
+        else{
+            //Check if a card in the hand is free to move.
+            if($(parent).closest(".cardBase").attr("id") == "handBox"){
+                var lastCard = $("#handBox").find(".playingCard").last()[0];
+                if (lastCard != element){ return;}
+            }
+            $(parent).wrap("<div class='move_wrapper'/>");
+            
+        }
+        
+        
+        $(".move_wrapper").draggable({
+            revert: "invalid",
+            start: function(event, ui) {
+                $(this).css("z-index", 2);
+            },
+            stop: function(){
+
+                $(this).css("z-index",1); 
+                $(".move_wrapper").children(".cardSlot").unwrap();
+                },
+            snap: true,
+            snapTolerance: 50
+
+        
+        });
+    }
+    
+}
+function dropStack(element, target){
+    var cards = element.find(".cardSlot");
+    for (var i = 0; i < cards.length; i++){
+        $(cards[i]).insertBefore(target);
+    }
+    $(".move_wrapper").find(".cardSlot").unwrap();
+    $(".move_wrapper").remove();
+
+
+}
+
+
+
+
+   
+
+var stack = new Deck();
+stack.shuffle();
+Deal(stack);
+var hand = [];
+
+
+
+</script>
