@@ -110,10 +110,6 @@
 
 <script>
 
-const cardNames = ["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Jack","Queen","King"];
-const cardSymbols = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-const suites = ["Hearts", "Diamonds", "Spades", "Clubs"];
-const suiteSymbols = ["H","D","S","C"];
 
 class Card {
 
@@ -140,10 +136,14 @@ class Card {
 	}
 	render(element, faceup=true, newSlot=true){
         
-		var slots = element.getElementsByClassName("cardSlot");
+        //Declare where the card will be rendered
+		var slots = $(element).find(".cardSlot");
 		var lastSlot = slots[slots.length - 1];
 		var card = document.createElement("div");
+        
 		card.className = "playingCard";
+
+        //Tie card properties to html data attributes
 		card.id = this.name+"Of"+this.suite;
 
 		card.setAttribute("data-name", this.name);
@@ -153,6 +153,7 @@ class Card {
         card.setAttribute("data-image",this.image);
         card.setAttribute("data-faceup",faceup);
 	
+        //Render an image of the card inside the ".playingCard" div
 		var graphic = document.createElement("img");
 		graphic.className = "cardImage";
 		if (faceup){
@@ -162,10 +163,12 @@ class Card {
 			graphic.src = "/assets/Cards/blue_back.png";
 		}
 		graphic.alt = this.name + " of " + this.suite;
-
+        
+        //Scaffold the pieces
 		card.appendChild(graphic);
 		lastSlot.appendChild(card);
 		
+        //Create a new slot to hold the next card in the container (i.e. hand, stack, or pile)
 		if(newSlot){
 			var next = document.createElement("div");
 			next.className = "cardSlot";
@@ -175,18 +178,23 @@ class Card {
             element.appendChild(next);
         }
   
+        //Call function to create a draggable wrapper div on click
         $(card).mousedown(function(event){
             if (event.which == 1 && $(card).parents(".move_wrapper").length == 0){
                 wrapStack(card);
             }
             
         });
-        // $(card).mouseup(function(){
-        //     $(this).parent().unwrap();
-        // });
+   
         return card;
 	}
 }
+//Create a deck with one of each kind of card by iterating through the lists.
+const cardNames = ["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Jack","Queen","King"];
+const cardSymbols = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+const suites = ["Hearts", "Diamonds", "Spades", "Clubs"];
+const suiteSymbols = ["H","D","S","C"];
+
 class Deck {
 
 	constructor() {
@@ -199,11 +207,13 @@ class Deck {
 		}
 	}
 	shuffle(len = 52) {
+        //Place each card into a random unfilled space in a new array.
 		var shuffled = [];
 		var spacesFilled = []; //Tracks which indices are already filled
 		for (let p = 0; p < this.cards.length; p++) {
 			while (true) {
 				var space = Math.floor(Math.random() * len);
+                //Check to see if the space is unfilled in the new deck, and if so, fill it with the card from the original deck
 				if (spacesFilled.indexOf(space) == -1) {
 					var card = this.cards[p];
 					shuffled[space] = card;
@@ -217,11 +227,13 @@ class Deck {
 	}
 	draw(num) {
 		var drawn = [];
+        //Remove from deck when drawn
 		for (let i = 0; i < num; i++) {
 			drawn.push(this.cards.pop());
 		}
 		return drawn;
 	}
+    //print to console for debugging purposes
 	print() {
 		for (let i = 0; i < this.cards.length; i++) {
 			var card = this.cards[i];
@@ -231,8 +243,8 @@ class Deck {
 
 }
 
-
-function refresh(){
+//Show only the top five cards of the hand so as not to overfill the viewport.
+function hideOrShowHand(){
     var slots = $(handBox).find(".cardSlot");
      slots.each(function(index){
         if (index < slots.length - 6){
@@ -243,12 +255,18 @@ function refresh(){
         }
      });
 }
+
+//Remove the draggable move_wrapper, essentially deselecting a card
+function deselect(){
+    $(".move_wrapper").find(".cardSlot").unwrap();
+    $(".move_wrapper").remove();
+}
+
 function Draw(deck){
     
     var handBox = document.getElementById("handBox");
     //Destroy move_wrapper so that there's no chance of being able to move a card that's not at the top of the hand.
-    $(".move_wrapper").find(".cardSlot").unwrap();
-    $(".move_wrapper").remove();
+    deselect();
 
     if (deck.cards.length > 0){
         $("#stock").attr("src","/assets/Cards/blue_back.png");
@@ -263,7 +281,7 @@ function Draw(deck){
             alert(name + " repeated!");
         }
         var element = drawn.render(handBox);
-        refresh();
+        hideOrShowHand();
         
     
     }
@@ -281,52 +299,119 @@ function Draw(deck){
     }
     
 }
+function wrapStack(element){  //Gets all cards further down the stack of the selected card and wraps in a temporary draggable div.
+    //Destroy any pre-existing move_wrappers so that only one exists at any given time.
+    deselect();
+
+    var faceup = element.getAttribute("data-faceup");
+    //Ensure that the card is face-up before it's dragged
+    if(faceup == "true"){
+        //implement different functions depending on where the card is being dragged from
+        var parent = $(element).parent()[0];
+        //if the card is dragged from the platforms, wrap all next siblings
+        if ($(parent).closest(".cardBase").hasClass("platform")){
+            var stack = $(parent).nextAll(".cardSlot").addBack();
+            stack.wrapAll("<div class='move_wrapper'/>");
+        }
+        else{
+            //If the card is being dragged from the hand, make sure that it is at the very front.
+            if($(parent).closest(".cardBase").attr("id") == "handBox"){
+                var lastCard = $("#handBox").find(".playingCard").last()[0];
+                if (lastCard != element){ return;}
+            }
+            $(parent).wrap("<div class='move_wrapper'/>");
+            
+        }
+        
+        //Make the wrapper draggable.
+        $(".move_wrapper").draggable({
+            revert: "invalid",
+            //Make sure that the card has the top z-index while it is dragged so that it can be seen.
+            start: function(event, ui) {
+                $(this).css("z-index", 2);
+            },
+            stop: function(){
+
+                $(this).css("z-index",1); 
+                },
+            snap: true,
+            snapTolerance: 50,
+            scroll: false
+
+        
+        });
+    }
+    
+}
+function dropStack(element, target){
+    var cards = element.find(".cardSlot");
+    //Dump the contents of the move_wrapper into the target div
+    for (var i = 0; i < cards.length; i++){
+        $(cards[i]).insertBefore(target);
+    }
+    //Destroy the move_wrapper
+    deselect();
+
+
+}
+//When a card is successfully removed from a platform, flip-over the previous facedown card, if there is one.
+function flipNext(dragged){
+    var nextCard = $(dragged).closest(".move_wrapper").prev().find(".playingCard");
+        if (nextCard != undefined){
+            var image = nextCard.attr("data-image");
+            nextCard.attr("data-faceup",true);
+            nextCard.find("img").attr("src",image);
+        }
+}
+//Deal the initial set-up and create dropzones for each valid drop location.
 function Deal(deck){
     var platformsList = document.getElementsByClassName("platform");
     for (let L = 1; L < platformsList.length + 1; L++){
         var counter = 0;
         var platform = document.getElementById(`platform_${L}`);
 
+        //Deal cards n cards face down, where n = platform# - 1
         while(counter < L - 1){
             let drawn = deck.cards.pop();
             drawn.render(platform, false);
             counter++;
         }
+        //Deal one card faceup to each platform
         var drawn = deck.cards.pop();
         drawn.render(platform);
+        //Create a "dropzone" at the bottom of each platform for new cards to be dropped over. New cards will always become previous siblings to the dropzone.
         var dz = platform.lastChild;
         dz.id = `dropZone_${L}`;
         $(dz)
             .removeClass("cardSlot")
             .addClass("platform_dropZone")
         }
+        //Define the dropzones droppable and define a valid move.
         $(".platform_dropZone").droppable({
             drop: function(event, ui){
-                 //Flip over next card
-                 var nextCard = $(ui.draggable).closest(".move_wrapper").prev().find(".playingCard");
-                if (nextCard != undefined){
-                    var image = nextCard.attr("data-image");
-                    nextCard.attr("data-faceup",true);
-                    nextCard.find("img").attr("src",image);
-                }
-                 //Remove from hand array variable if necessary
+                 flipNext(ui.draggable);
+                 //Remove from hand array variable if necessary to ensure that the variable tracking the cards in the hand lines up with the rendered divs in the "handBox"
                  if ($(ui.draggable).closest(".cardBase").attr("id") == "handBox"){
                     hand.pop();
-                }   
+                }
+                //Unpack the contents of the move_wrapper into the target div.   
                 dropStack(ui.draggable,this);
                  
-                refresh();                 
+                hideOrShowHand();                 
             },
             accept: function(drag){
+                //Compare the properties of the dragged card with the properties of the card its dropped onto.
                 var dropCard = $(this).parent().find(".playingCard").last();
                 var dragCard = $(drag).find(".playingCard").first();
                 var dragColor = dragCard.attr("data-color");
                 var dropColor = dropCard.attr("data-color");
                 var dragValue = parseInt(dragCard.attr("data-value"));
                 var dropValue = parseInt(dropCard.attr("data-value"));
+                //Define a valid move in the platforms. A card can only be dragged onto each other in descending order and in alternating colors
                 if(dragColor != dropColor && dragValue == dropValue - 1){
                     return true;
                 }
+                //If a platform is empty, it can only receive a king
                 else if(dropCard.length == 0 && dragValue == 13){
                     return true;
                 }
@@ -337,25 +422,20 @@ function Deal(deck){
             tolerance: "touch"
                           
         }); 
+        //Define droppable rules for the piles
         $(".pile").droppable({
             drop: function(event, ui){
                 //Flip over next card
-                var nextCard = $(ui.draggable).closest(".move_wrapper").prev().find(".playingCard");
-                if (nextCard != undefined){
-                    var image = nextCard.attr("data-image");
-                    nextCard.attr("data-faceup",true);
-                    nextCard.find("img").attr("src",image);
-                }
+                flipNext(ui.draggable);
                 //Remove from hand array variable if necessary
                 if ($(ui.draggable).closest(".cardBase").attr("id") == "handBox"){
                     hand.pop();
                 }   
                 $(this).find(".cardSlot").first().append(ui.draggable);
            
-                $(".move_wrapper").find(".cardSlot").unwrap();
-                $(".move_wrapper").remove();
+                deselect();
     
-                refresh();
+                hideOrShowHand();
 
                 //Check to see if player has won
                 var piles = $(".pile");
@@ -363,6 +443,7 @@ function Deal(deck){
                 for (let i = 0; i < piles.length; i++){
                     topCards.push($(piles[i]).find(".playingCard").last().attr("data-name"));
                 }
+                //If the top card of all four piles is a king, the player has won
                 var won = jQuery.grep(topCards, function(card){
                     return card == "King";
                 })
@@ -376,9 +457,11 @@ function Deal(deck){
 
             accept: function(drag){
                 var cards = $(drag).find(".playingCard");
+                //Ensure that only one card can be dragged to the pile at a time.
                 if (cards.length != 1){
                     return false
                 }
+                //Compare the attributes of the dragged card with the attributes of the top card of the pile.
                 else{
                     var dropCard = $(this).find(".playingCard").last();
                     var dragCard = cards.first();
@@ -386,6 +469,7 @@ function Deal(deck){
                     var dropSuite = dropCard.attr("data-suite");
                     var dragValue = parseInt(dragCard.attr("data-value"));
                     var dropValue = parseInt(dropCard.attr("data-value"));
+                    //Accept only if the dragged card is of one greater value than the top of the pile and of the same suite
                     if(dragSuite == dropSuite && dragValue == dropValue + 1){
                         return true;
                     }
@@ -402,62 +486,10 @@ function Deal(deck){
         }); 
 }
 
-function wrapStack(element){  //Gets all cards further down the stack of the selected card and wraps in a temporary draggable div.
-    $(".move_wrapper").find(".cardSlot").unwrap();
-    $(".move_wrapper").remove();
-
-    var faceup = element.getAttribute("data-faceup");
-    if(faceup == "true"){
-        var parent = $(element).parent()[0];
-        if ($(parent).closest(".cardBase").hasClass("platform")){
-            var stack = $(parent).nextAll(".cardSlot").addBack();
-            stack.wrapAll("<div class='move_wrapper'/>");
-        }
-        else{
-            //Check if a card in the hand is free to move.
-            if($(parent).closest(".cardBase").attr("id") == "handBox"){
-                var lastCard = $("#handBox").find(".playingCard").last()[0];
-                if (lastCard != element){ return;}
-            }
-            $(parent).wrap("<div class='move_wrapper'/>");
-            
-        }
-        
-        
-        $(".move_wrapper").draggable({
-            revert: "invalid",
-            start: function(event, ui) {
-                $(this).css("z-index", 2);
-            },
-            stop: function(){
-
-                $(this).css("z-index",1); 
-                $(".move_wrapper").children(".cardSlot").unwrap();
-                },
-            snap: true,
-            snapTolerance: 50,
-            scroll: false
-
-        
-        });
-    }
-    
-}
-function dropStack(element, target){
-    var cards = element.find(".cardSlot");
-    for (var i = 0; i < cards.length; i++){
-        $(cards[i]).insertBefore(target);
-    }
-    $(".move_wrapper").find(".cardSlot").unwrap();
-    $(".move_wrapper").remove();
-
-
-}
 
 
 
-
-   
+//Set-up initial game
 
 var stack = new Deck();
 stack.shuffle();
